@@ -1,0 +1,67 @@
+# Install anaconda Python stack and some other useful tools
+FROM jupyter/base-notebook
+
+USER root
+RUN apt-get update && \
+  apt-get install -y dialog net-tools build-essential
+USER jovyan
+
+
+# Install various things
+RUN conda install -y -c conda-forge \
+  git \
+  scipy \
+  compilers \
+  lapack \
+  vim \
+  nano \
+  git \
+  tar \
+  curl \
+  pytest \
+  xarray \
+  ffmpeg
+
+# Install additional packages useful with GeoClaw:
+
+RUN conda install -c conda-forge \
+  netcdf4 \
+  netcdf-fortran \
+  cartopy \
+  pyproj \
+  rasterio
+
+# set env variables
+ENV CLAW=${HOME}/clawpack-v5-12-0
+ENV NETCDF4_DIR=/opt/conda
+ENV FC=gfortran
+# this is needed to find libraries when building geoclaw (particularly lapack)
+ENV LIB_PATHS=/opt/conda/lib
+
+# Install clawpack-v5.12.0 (into $HOME/clawpack-v5-12-0):
+
+RUN git clone https://github.com/clawpack/clawpack.git ${CLAW}
+WORKDIR ${CLAW}
+RUN git checkout v5.12.0
+RUN git submodule init
+RUN git submodule update
+RUN pip install -r requirements-dev.txt
+
+RUN pip install --no-build-isolation -e ./
+
+# set prompt:
+RUN echo 'export PS1="jovyan $ "' >> ~/.bashrc
+
+# Clone the apps repository (with master checked out):
+RUN git clone https://github.com/clawpack/apps.git
+
+WORKDIR ${HOME}
+
+# fix a few things for git:
+RUN git config --file .gitconfig core.pager more
+RUN git config --file .gitconfig core.editor vim
+
+# Add packages needed for the book http://www.clawpack.org/riemann_book/
+# REMOVED
+
+CMD [ "/bin/bash" ]

@@ -3,34 +3,8 @@ FROM quay.io/jupyter/base-notebook
 
 USER root
 RUN apt-get update && \
-  apt-get install -y dialog net-tools build-essential
+  apt-get install -y dialog net-tools build-essential libopenmpi-dev libblis-serial-dev liblapack-dev git cmake curl less make pkgconf python3-scipy libnetcdf-dev libnetcdff-dev python3-cartopy python3-pyproj rasterio bash-completion nano vim
 USER jovyan
-
-
-# Install various things
-RUN conda install -y -c conda-forge \
-  git \
-  scipy \
-  compilers \
-  lapack \
-  vim \
-  nano \
-  git \
-  tar \
-  curl \
-  pytest \
-  xarray \
-  ffmpeg \
-  openmpi
-
-# Install additional packages useful with GeoClaw:
-
-RUN conda install -c conda-forge \
-  netcdf4 \
-  netcdf-fortran \
-  cartopy \
-  pyproj \
-  rasterio
 
 # Install PETSc
 
@@ -41,16 +15,13 @@ RUN git clone --depth=1 --branch release https://gitlab.com/petsc/petsc.git
 RUN cd ${PETSC_DIR} && \
     OPT='-O3 -march=haswell -ffp-contract=fast' && \
     python3 configure \
-        --with-debugging=0 COPTFLAGS="$OPT" CXXOPTFLAGS="$OPT" FOPTFLAGS="$OPT" \
-	--with-mpi-dir=/opt/conda && \
+        --with-debugging=0 COPTFLAGS="$OPT" CXXOPTFLAGS="$OPT" FOPTFLAGS="$OPT" && \
     make
+ENV LD_LIBRARY_PATH=${PETSC_DIR}/${PETSC_ARCH}/lib
 
 # set env variables
 ENV CLAW=${HOME}/clawpack-v5-12-0
-ENV NETCDF4_DIR=/opt/conda
 ENV FC=gfortran
-# this is needed to find libraries when building geoclaw (particularly lapack)
-ENV LIB_PATHS=/opt/conda/lib
 
 # Install clawpack-v5.12.0 (into $HOME/clawpack-v5-12-0):
 

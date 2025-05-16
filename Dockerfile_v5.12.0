@@ -1,5 +1,5 @@
 # Install anaconda Python stack and some other useful tools
-FROM jupyter/base-notebook
+FROM quay.io/jupyter/base-notebook
 
 USER root
 RUN apt-get update && \
@@ -20,7 +20,8 @@ RUN conda install -y -c conda-forge \
   curl \
   pytest \
   xarray \
-  ffmpeg
+  ffmpeg \
+  openmpi
 
 # Install additional packages useful with GeoClaw:
 
@@ -30,6 +31,19 @@ RUN conda install -c conda-forge \
   cartopy \
   pyproj \
   rasterio
+
+# Install PETSc
+
+ENV PETSC_DIR=${HOME}/petsc
+ENV PETSC_ARCH=ompi-int32-real-opt
+WORKDIR ${HOME}
+RUN git clone --depth=1 --branch release https://gitlab.com/petsc/petsc.git
+RUN cd ${PETSC_DIR} && \
+    OPT='-O3 -march=haswell -ffp-contract=fast' && \
+    python3 configure \
+        --with-debugging=0 COPTFLAGS="$OPT" CXXOPTFLAGS="$OPT" FOPTFLAGS="$OPT" \
+	--with-mpi-dir=/opt/conda && \
+    make
 
 # set env variables
 ENV CLAW=${HOME}/clawpack-v5-12-0

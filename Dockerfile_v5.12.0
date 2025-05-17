@@ -3,7 +3,14 @@ FROM quay.io/jupyter/base-notebook
 
 USER root
 RUN apt-get update && \
-  apt-get install -y dialog net-tools build-essential libopenmpi-dev libblis-serial-dev liblapack-dev git cmake curl less make pkgconf python3-scipy libnetcdf-dev libnetcdff-dev python3-cartopy python3-pyproj rasterio bash-completion nano vim
+  apt-get install -y dialog net-tools build-essential libopenmpi-dev \
+    libblis-serial-dev liblapack-dev libnetcdf-dev libnetcdff-dev \
+    git cmake curl less make pkgconf bash-completion nano vim libgdal-dev
+
+RUN pip install pytest sphinx pyvista geovista gdal fiona geopandas
+RUN pip install numpy scipy matplotlib jupyter xarray pandas rioxarray
+RUN pip install cartopy pyproj netCDF4 gdal rasterio shapely contextily
+
 USER jovyan
 
 # Install PETSc
@@ -13,7 +20,7 @@ ENV PETSC_ARCH=ompi-int32-real-opt
 WORKDIR ${HOME}
 RUN git clone --depth=1 --branch release https://gitlab.com/petsc/petsc.git
 RUN cd ${PETSC_DIR} && \
-    OPT='-O3 -march=haswell -ffp-contract=fast' && \
+    OPT='-O3  -ffp-contract=fast' && \
     python3 configure \
         --with-debugging=0 COPTFLAGS="$OPT" CXXOPTFLAGS="$OPT" FOPTFLAGS="$OPT" && \
     make

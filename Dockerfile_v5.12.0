@@ -5,11 +5,17 @@ USER root
 RUN apt-get update && \
   apt-get install -y dialog net-tools build-essential libopenmpi-dev \
     libblis-serial-dev liblapack-dev libnetcdf-dev libnetcdff-dev \
-    git cmake curl less make pkgconf bash-completion nano vim libgdal-dev
+    git cmake curl less make pkgconf bash-completion nano vim
 
-RUN pip install pytest sphinx pyvista geovista gdal fiona geopandas
-RUN pip install numpy scipy matplotlib jupyter xarray pandas rioxarray
-RUN pip install cartopy pyproj netCDF4 gdal rasterio shapely contextily
+RUN pip install pytest sphinx pyvista geovista
+RUN pip install numpy scipy matplotlib jupyter xarray pandas
+RUN pip install cartopy pyproj netCDF4 shapely
+
+# This is not working:
+#RUN apt-get install -y libgdal-dev
+# We would like to install these packages, but they all require gdal:
+#RUN pip install gdal rasterio rioxarray fiona geopandas contextily
+
 
 USER jovyan
 
